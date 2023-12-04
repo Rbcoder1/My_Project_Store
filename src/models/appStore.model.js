@@ -12,6 +12,7 @@ const appStoreSchema = mongoose.Schema(
         },
         logo_images: {
             type: String,
+            required: true
         },
         preview_images: {
             type: [
@@ -26,9 +27,11 @@ const appStoreSchema = mongoose.Schema(
         },
         developer: {
             type: String,
+            required: true
         },
         preview_link: {
-            type: String
+            type: String,
+            required: true
         }
     }, { timestamp: true }
 )

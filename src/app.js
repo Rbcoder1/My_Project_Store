@@ -15,12 +15,11 @@ app.use(cookieParser())
 
 
 //routes imports
-
 import userRouter from './routes/user.routes.js';
-
+import appStoreRouter from './routes/appstore.routes.js'
 
 // routes declaration
 app.use('/api/v1/users', userRouter)
-
+app.use('/api/v1/appstore', appStoreRouter)
 
 export { app }
