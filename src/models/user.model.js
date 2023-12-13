@@ -19,6 +19,11 @@ const userSchema = mongoose.Schema(
             lowercase: true,
             trim: true
         },
+        role : {
+            type : String,
+            required : true,
+            default : "custmers"
+        },
         password: {
             type: String,
             required: [true, "password is required"]
@@ -26,7 +31,7 @@ const userSchema = mongoose.Schema(
         refreshToken: {
             type: String
         }
-    }, { timestamp: true }
+    }, { timestamps: true }
 )
 
 //midleware for hashing password before store in database
@@ -57,6 +62,7 @@ userSchema.methods.generateAccessToken = function () {
         }
     )
 }
+
 userSchema.methods.generateRefreshToken = function () {
     return jwt.sign(
         {

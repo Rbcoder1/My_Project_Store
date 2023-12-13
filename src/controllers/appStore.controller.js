@@ -67,36 +67,31 @@ const updateProject = async (req, res) => {
     const logoLocalPath = req.files?.logo_images[0]?.path;
     const previewLocalPath = req.files?.preview_images[0]?.path;
 
-    if (!logoLocalPath) {
-        return res.status(400).send("logo image is required")
-    }
-
     // uploading local files on cloudinary and return files link 
     const logo_image = await uploadFileOnCloudinary(logoLocalPath);
     const preview_image = await uploadFileOnCloudinary(previewLocalPath);
 
-    if (!logo_image) {
-        res.status(500).send("logo image not found")
-    }
-
-    const projectId = req.params.id;
-    const updatedProject = {
-        title,
-        description,
-        logo_images: logo_image.url,
-        preview_images: preview_image?.url || "",
-        category,
-        developer,
-        preview_link
-    }
 
     try {
-        console.log("uploading")
-        const newproject = await appStore.updateOne({ _id: projectId }, updatedProject)
-        return res.send(newproject);
+        const updatedProject = await appStore.findOneAndUpdate({ _id: req.params.id }, {
+            title,
+            description,
+            logo_images: logo_image?.url,
+            preview_images: preview_image?.url,
+            category,
+            developer,
+            preview_link
+        })
+
+        return res.status(200).json(updatedProject)
+
     } catch (e) {
-        console.log(e);
+        return res.status(500).json({
+            "error": "Internal server Error",
+            "msg": e
+        })
     }
+
 }
 
 //api that delete project in database

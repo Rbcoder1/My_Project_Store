@@ -2,10 +2,10 @@ import { User } from "../models/user.model.js";
 
 // user register controller 
 const registerUser = async (req, res) => {
-    const { username, email, password } = req.body
+    const { username, email, password, role } = req.body
 
     if (
-        [username, email, password].some((field) => field?.trim() === "")
+        [username, email, password, role].some((field) => field?.trim() === "")
     ) {
         return res.send("Some Field Is Empty");
     }
@@ -21,7 +21,8 @@ const registerUser = async (req, res) => {
     const user = await User.create({
         username,
         email,
-        password
+        password,
+        role
     })
 
     // removing password and refresh token user 
@@ -34,7 +35,10 @@ const registerUser = async (req, res) => {
         res.status(500)
         res.send("Something Went Wrong While Creating User")
     }
-    return res.status(201).json({ createdUser })
+
+    const userToken = createdUser.generateAccessToken();
+
+    return res.status(201).json(userToken);
 }
 
 // user login controller 
@@ -50,17 +54,44 @@ const loginUser = async (req, res) => {
 
     const validUser = await User.findOne({ email })
 
-    if(!validUser){
+    if (!validUser) {
         return res.status(402).send("User Does Not Exist")
     }
 
     const validPass = await validUser.isPasswordCorrect(password)
-    
-    if(!validPass){
+
+    if (!validPass) {
         return res.status(402).send("Enter Valid Password")
     }
 
-    return res.send(validUser)
+    const userToken = validUser.generateAccessToken();
+
+    return res.status(200).json({ userToken });
 }
 
-export { registerUser, loginUser }
+// update user controller
+const updateUser = async (req, res) => {
+    const { username, email } = req.body
+
+    if (
+        [username, email].some((field) => field?.trim() === "")
+    ) {
+        return res.send("Some Field Is Empty");
+    }
+
+    const newUser = {
+        username,
+        email
+    }
+
+    try {
+        const user = await User.findOneAndUpdate({ _id: req.user.id }, newUser)
+        return res.json(user)
+    } catch (e) {
+        res.status(501).json({
+            "errror": e
+        })
+    }
+}
+
+export { registerUser, loginUser, updateUser }
