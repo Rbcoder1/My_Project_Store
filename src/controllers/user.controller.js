@@ -1,5 +1,21 @@
 import { User } from "../models/user.model.js";
 
+const generateAccessAndRefreshToken = async (userId) => {
+    try {
+        const user = await User.findById({ userId })
+
+        const accessToken = await user.generateAccessToken()
+        const refreshToken = await user.generateRefreshToken()
+
+        user.refreshToken = refreshToken;
+        await user.save({ validateBeforeSave: false })
+
+        return { accessToken, refreshToken }
+    } catch (error) {
+        return res.status(500).send("Error While Created Access And Refresh Token")
+    }
+}
+
 // user register controller 
 const registerUser = async (req, res) => {
     const { username, email, password, role } = req.body
@@ -36,9 +52,7 @@ const registerUser = async (req, res) => {
         res.send("Something Went Wrong While Creating User")
     }
 
-    const userToken = createdUser.generateAccessToken();
-
-    return res.status(201).json(userToken);
+    return res.status(201).send("User Register Successfully");
 }
 
 // user login controller 
@@ -64,34 +78,86 @@ const loginUser = async (req, res) => {
         return res.status(402).send("Enter Valid Password")
     }
 
-    const userToken = validUser.generateAccessToken();
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(validUser._id)
 
-    return res.status(200).json({ userToken });
+    validUser = await User.findById(validUser._id).select("-password -refreshToken")
+
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res.
+        status(200).
+        cookie("accessToken", accessToken, options).
+        cookie("refreshToken", refreshToken, options).
+        json({
+            user: validUser,
+            accessToken,
+            refreshToken
+        }).
+        send("User LoggedIn Successfully")
+
 }
 
 // update user controller
 const updateUser = async (req, res) => {
-    const { username, email } = req.body
+    const { username } = req.body
 
     if (
-        [username, email].some((field) => field?.trim() === "")
+        [username].some((field) => field?.trim() === "")
     ) {
         return res.send("Some Field Is Empty");
     }
 
-    const newUser = {
-        username,
-        email
-    }
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: {
+                username
+            }
+        },
+        {
+            new: true
+        }
+    )
 
-    try {
-        const user = await User.findOneAndUpdate({ _id: req.user.id }, newUser)
-        return res.json(user)
-    } catch (e) {
-        res.status(501).json({
-            "errror": e
+    return res.status(200)
+        .json({
+            user
         })
-    }
 }
 
-export { registerUser, loginUser, updateUser }
+// logged out user
+const userLoggedOut = async (req, res) => {
+    await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: {
+                refreshToken: undefined
+            }
+        },
+        {
+            new: true
+        }
+    )
+
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res.status(200)
+        .clearCookie("accessToken", options)
+        .clearCookie("refreshToken", options)
+        .json({
+            "msg": "User Logged Out"
+        })
+}
+
+export {
+    registerUser,
+    loginUser,
+    updateUser,
+    userLoggedOut
+}

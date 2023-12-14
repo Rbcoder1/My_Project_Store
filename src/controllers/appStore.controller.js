@@ -95,6 +95,22 @@ const updateProject = async (req, res) => {
 }
 
 //api that delete project in database
+const deleteProject = async (req, res) => {
+    // fetch project Id
+    // check admin
+    // delete project files from cloudinary
+    // delete project from database
+    // return res
+}
+
 // api that query projects in database 
+const fetchAllProject = async (req, res) => {
+    const projects = await appStore.find()
+
+    return res.status(200)
+        .json({
+            projects
+        })
+}
 
 export { addProject, updateProject }
