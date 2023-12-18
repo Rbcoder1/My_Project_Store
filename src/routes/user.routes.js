@@ -10,5 +10,6 @@ router.route('/login').post(loginUser)
 // secure routes 
 router.route('/update-user').put([auth], updateUser)
 router.route('/loggedout').post([auth], userLoggedOut)
+router.route('/refreshToken').post(refreshAccessToken)
 
 export default router;

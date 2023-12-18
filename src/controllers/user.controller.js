@@ -155,9 +155,57 @@ const userLoggedOut = async (req, res) => {
         })
 }
 
+//refresh access token
+const refreshAccessToken = async (req, res) => {
+    const incomingAccessToken = req.cookies.accessToken || req.body.accessToken
+
+    if (!incomingAccessToken) {
+        return res.status(401).json({
+            "error": "Refresh Token Not Found"
+        })
+    }
+
+    try {
+        const user = await jwt.verify(incomingAccessToken, process.env.REFRESH_TOKEN_SECRET)
+
+        const incomingUser = await User.findById(user?._id)
+
+        if (!incomingUser) {
+            res.status(401).json({
+                "error": "Invalid Refresh Token"
+            })
+        }
+
+        if (incomingAccessToken !== incomingUser?.accessToken) {
+            res.status(401).json({
+                "error": "Incorrect Refresh Token"
+            })
+        }
+
+        const { accessToken, newRefreshToken } = await generateAccessAndRefreshToken(incomingUser?._id)
+
+        const options = {
+            httpOnly: true,
+            secure: true
+        }
+
+        return res.status(200)
+            .cookie("accessToken", accessToken, options)
+            .cookie("refreshToken", newRefreshToken, options)
+            .json({
+                accessToken,
+                newRefreshToken
+            })
+    } catch (error) {
+        return res.status(401).json({
+            "error": error?.message || "Invalid Refresh Token",
+        })
+    }
+}
 export {
     registerUser,
     loginUser,
     updateUser,
-    userLoggedOut
+    userLoggedOut,
+    refreshAccessToken
 }
