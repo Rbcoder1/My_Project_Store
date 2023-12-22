@@ -120,11 +120,12 @@ const updateUser = async (req, res) => {
         {
             new: true
         }
-    )
+    ).select("-password")
 
     return res.status(200)
         .json({
-            user
+            user,
+            msg: "User Updated Successfully"
         })
 }
 
@@ -202,10 +203,47 @@ const refreshAccessToken = async (req, res) => {
         })
     }
 }
+
+// changed current password 
+const changeCurrentPassword = async (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+
+    const user = await User.findById(req.user?._id)
+
+    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
+
+    if (!isPasswordCorrect) {
+        return res.status(400)
+            .json({
+                error: "Invalid Old Password"
+            })
+    }
+
+    user.password = newPassword
+    await user.save({ validateBeforeSave: false })
+
+    return res.status(200)
+        .json({
+            msg: "Password Successfully Changed"
+        })
+}
+
+// get current user information 
+const getCurrentUser = async (req, res) => {
+    return res.status(200)
+        .json({
+            user: req.user,
+            msg: "Current User Fetch Successfully"
+        })
+}
+
+
 export {
     registerUser,
     loginUser,
     updateUser,
     userLoggedOut,
-    refreshAccessToken
+    refreshAccessToken,
+    changeCurrentPassword,
+    getCurrentUser
 }

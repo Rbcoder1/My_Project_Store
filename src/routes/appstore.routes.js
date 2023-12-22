@@ -20,20 +20,7 @@ router.route("/add-project").post(
         ])
     ], addProject);
 
-router.route("/update-project/:id").put(
-    [
-        auth,
-        upload.fields([
-            {
-                name: "logo_images",
-                maxCount: 1
-            },
-            {
-                name: "preview_images",
-                maxCount: 4
-            }
-        ])
-    ], updateProject)
+router.route("/update-project/:id").put([auth], updateProject)
 
 
 export default router;
