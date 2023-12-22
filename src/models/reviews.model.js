@@ -15,7 +15,8 @@ const reviewsSchema = mongoose.Schema(
             required: true
         },
         rating: {
-            type: Number
+            type: Number,
+            required: true
         }
     }, { timestamp: true }
 )
