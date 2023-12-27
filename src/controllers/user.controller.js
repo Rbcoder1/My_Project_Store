@@ -237,6 +237,57 @@ const getCurrentUser = async (req, res) => {
         })
 }
 
+const getUserProfileDetails = async (req, res) => {
+    const { username } = req.params
+
+    if (!username?.trim()) {
+        return res.status(400).json({
+            error: "Username name is missing"
+        })
+    }
+
+    const profile = await User.aggregate([
+        {
+            $match: {
+                username: username?.toLowerCase()
+            }
+        },
+        {
+            $lookup: {
+                from: "reviews",
+                localField: "_id",
+                foreignField: "userId",
+                as: "user_reviews"
+            }
+        },
+        {
+            $addFields: {
+                review_count: {
+                    $size: "$user_reviews"
+                }
+            }
+        },
+        {
+            $project: {
+                username: 1,
+                email: 1,
+                review_count: 1
+            }
+        }
+    ])
+
+    if (!profile?.length()) {
+        return res.status(404).json({
+            error: "Profile Does not exist"
+        })
+    }
+
+    return res.status(200)
+        .json({
+            profile: profile[0],
+            msg: "profile fetch successfully"
+        })
+}
 
 export {
     registerUser,
