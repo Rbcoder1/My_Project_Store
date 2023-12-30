@@ -1,5 +1,8 @@
 import { appStore } from '../models/appStore.model.js'
-import { uploadFileOnCloudinary } from '../utils/cloudinary.js';
+import {
+    deleteFileFromCloudinary,
+    uploadFileOnCloudinary
+} from '../utils/cloudinary.js';
 
 //api that add project in database
 const addProject = async (req, res) => {
@@ -83,7 +86,7 @@ const updateProject = async (req, res) => {
 
 }
 
-// api that update images of project in database 
+// api that update logo images of project in database 
 const updateProjectLogoImage = async (req, res) => {
     const logoLocalPath = req.file?.path
 
@@ -163,15 +166,31 @@ const updateProjectPreviewImages = async (req, res) => {
 
 //api that delete project in database
 const deleteProject = async (req, res) => {
-    // fetch project Id
-    // check admin
-    // delete project files from cloudinary
-    // delete project from database
-    // return res
+
+    const { projectId } = res.params;
+
+    if (!projectId) {
+        return res.status(400)
+            .json({
+                error: "Project Id Not Found"
+            })
+    }
+
+    const project = await appStore.findById(projectId)
+
+    //delete file from cloudinary 
+    await deleteFileFromCloudinary(project?.previewImage)
+    await deleteFileFromCloudinary(project?.logoImage)
+
+    //delete project from database
+
+
+    //return respose
 }
 
 // api that query projects in database 
 const fetchAllProject = async (req, res) => {
+
     const projects = await appStore.find()
 
     return res.status(200)
@@ -180,4 +199,11 @@ const fetchAllProject = async (req, res) => {
         })
 }
 
-export { addProject, updateProject }
+export {
+    addProject,
+    updateProject,
+    updateProjectLogoImage,
+    updateProjectPreviewImages,
+    deleteProject,
+    fetchAllProject
+}

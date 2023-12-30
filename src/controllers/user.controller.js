@@ -228,15 +228,7 @@ const changeCurrentPassword = async (req, res) => {
         })
 }
 
-// get current user information 
-const getCurrentUser = async (req, res) => {
-    return res.status(200)
-        .json({
-            user: req.user,
-            msg: "Current User Fetch Successfully"
-        })
-}
-
+// get current user information
 const getUserProfileDetails = async (req, res) => {
     const { username } = req.params
 
@@ -296,5 +288,5 @@ export {
     userLoggedOut,
     refreshAccessToken,
     changeCurrentPassword,
-    getCurrentUser
+    getUserProfileDetails
 }

@@ -11,6 +11,7 @@ cloudinary.config({
 const uploadFileOnCloudinary = async (localFilePath) => {
     try {
         if (!localFilePath) return null;
+
         // upload the file on cloudinary
         const response = await cloudinary.uploader.upload(localFilePath, {
             resource_type: "auto"
@@ -25,4 +26,9 @@ const uploadFileOnCloudinary = async (localFilePath) => {
     }
 }
 
-export { uploadFileOnCloudinary };
+const deleteFileFromCloudinary = async (CloudinaryFileURL) => {
+
+    //code for delete image on cloudinary
+}
+
+export { uploadFileOnCloudinary, deleteFileFromCloudinary };
